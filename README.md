@@ -1,44 +1,49 @@
-# Project Euler LLM Benchmark
+# Project Euler Solver
 
-This project automates solving **Project Euler** problems using **OpenAI's GPT API**. It fetches problem statements, attempts solutions using GPT, and compares results against known solutions.
+This is a simple project that tries to solve **Project Euler** problems using **OpenAI's GPT API**. The script gets the problems, asks GPT to solve them, and checks if the answers match the correct ones. It keeps track of everything in a CSV file.
 
-## Features
-- Fetches problems from Project Euler
-- Uses GPT-4o to solve the problems
-- Compares GPT-generated answers with known solutions
-- Logs results in a CSV file
+## What It Does
+- Pulls problems from Project Euler
+- Asks GPT-4o to solve them
+- Compares the answers with real solutions
+- Saves the results for reference
 
-## Requirements
+## What is Project Euler?
+[Project Euler](https://projecteuler.net/) is a collection of tricky math and programming problems. These aren’t just basic math questions—they often need smart algorithms and problem-solving skills. Because of this, they're a great way to see how good an AI model really is at thinking through tough problems.
+
+## Testing AI with These Problems
+Since Project Euler problems require actual reasoning and not just memorization, they make a great way to test an AI’s problem-solving ability. That said, it’s possible that some answers are already in the AI’s training data, which could affect the results.
+
+## What You Need
 - Python 3.x
 - `requests`
 - `pandas`
 - `openai`
 
-## Installation
+## How to Set It Up
 
-Clone the repository:
+First, clone the project:
 ```sh
 git clone https://github.com/YOUR_USERNAME/ProjectEulerSolver.git
 cd ProjectEulerSolver
 ```
 
-Install dependencies:
+Then, install the required Python libraries:
 ```sh
 pip install -r requirements.txt
 ```
 
-## Usage
+## How to Use It
 
-1. **Set up API Key**
-   - Rename `.env.example` to `.env` and add your OpenAI API key.
+1. **Set Up Your API Key**
+   - Add your OpenAI API key to the code
 
-2. **Run the script**
+2. **Run the Script**
    ```sh
    python solver.py
    ```
 
-Results will be saved in `results.csv`.
+The results will be saved in `results.csv`.
 
 ## License
-MIT License. See `LICENSE` for details.
-
+This project is open-source under the MIT License. Check `LICENSE` for details.
