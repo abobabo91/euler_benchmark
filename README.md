@@ -1,4 +1,4 @@
-# Project Euler Solver
+# Project Euler LLM Benchmark
 
 This project automates solving **Project Euler** problems using **OpenAI's GPT API**. It fetches problem statements, attempts solutions using GPT, and compares results against known solutions.
 
