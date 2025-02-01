@@ -1,4 +1,4 @@
-# Project Euler Solver
+# Project Euler Solver LLM Benchmark
 
 This is a simple project that tries to solve **Project Euler** problems using **OpenAI's GPT API**. The script gets the problems, asks GPT to solve them, and checks if the answers match the correct ones. It keeps track of everything in a CSV file.
 
@@ -14,6 +14,9 @@ This is a simple project that tries to solve **Project Euler** problems using **
 ## Testing AI with These Problems
 Since Project Euler problems require actual reasoning and not just memorization, they make a great way to test an AI’s problem-solving ability. That said, it’s possible that some answers are already in the AI’s training data, which could affect the results.
 
+## GPT-4o Results
+results.csv is the results for the current 'gpt-4o' model.
+
 ## What You Need
 - Python 3.x
 - `requests`
@@ -21,25 +24,14 @@ Since Project Euler problems require actual reasoning and not just memorization,
 - `openai`
 
 ## How to Set It Up
-
-First, clone the project:
-```sh
 git clone https://github.com/YOUR_USERNAME/ProjectEulerSolver.git
 cd ProjectEulerSolver
-```
-
-Then, install the required Python libraries:
-```sh
 pip install -r requirements.txt
-```
 
 ## How to Use It
-
 1. **Set Up Your API Key**
    - Add your OpenAI API key to the code
-
 2. **Run the Script**
-   ```sh
    python solver.py
    ```
 
