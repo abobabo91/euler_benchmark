@@ -357,11 +357,17 @@ def _solve_gemini(problem_text, model, api_key):
         except Exception:
             pass
 
-        parts = response.candidates[0].content.parts or []
+        try:
+            parts = response.candidates[0].content.parts or []
+        except (AttributeError, IndexError):
+            parts = []
         fn_calls = [p.function_call for p in parts if p.function_call and p.function_call.name]
 
         if not fn_calls:
-            text = response.text or ""
+            try:
+                text = response.text or ""
+            except Exception:
+                text = ""
             log.append({"step": step, "action": "text", "content": text[:300]})
             response = _retry(chat.send_message,
                               "Use the tools to write code and solve the problem. Call submit_answer when done.")
@@ -481,6 +487,15 @@ def main():
         expected = solutions.get(pn)
         print(f"\n{BOLD}Problem {pn}{RESET}" +
               (f"  {DIM}(expected: {expected}){RESET}" if expected else ""))
+
+        # Clean workspace between problems
+        import shutil
+        for f in os.listdir(WORKSPACE):
+            p = os.path.join(WORKSPACE, f)
+            if os.path.isdir(p):
+                shutil.rmtree(p, ignore_errors=True)
+            else:
+                os.remove(p)
 
         t0 = time.time()
         answer, steps, log, tok_in, tok_out = solve(text, provider, api_model, api_key)
