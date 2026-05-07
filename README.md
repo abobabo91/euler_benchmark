@@ -1,41 +1,58 @@
-# Project Euler Solver LLM Benchmark
+# Euler Solver
 
-This is a simple project that tries to solve **Project Euler** problems using **OpenAI's GPT API**. The script gets the problems, asks GPT to solve them, and checks if the answers match the correct ones. It keeps track of everything in a CSV file.
+Agentic LLM benchmark on Project Euler problems. Each model gets a workspace where it can write Python code, execute it, debug errors, and iterate until it finds the answer. No internet access — pure computation and algorithmic reasoning.
 
-## What It Does
-- Pulls problems from Project Euler
-- Asks GPT-4o to solve them
-- Compares the answers with real solutions
-- Saves the results for reference
+## How it works
 
-## What is Project Euler?
-[Project Euler](https://projecteuler.net/) is a collection of tricky math and programming problems. These aren’t just basic math questions—they often need smart algorithms and problem-solving skills. Because of this, they're a great way to see how good an AI model really is at thinking through tough problems.
+The agent receives a Project Euler problem and has three tools:
+- **write_file** — write a Python script to the workspace
+- **run_python** — execute it (30s timeout)
+- **read_file** — read a file back
 
-## Testing AI with These Problems
-Since Project Euler problems require actual reasoning and not just memorization, they make a great way to test an AI’s problem-solving ability. That said, it’s possible that some answers are already in the AI’s training data, which could affect the results.
+The LLM must reason about the math, write efficient code, run it, and return the answer. Scripts that time out force the model to think about algorithmic complexity.
 
-## GPT-4o Results
-results.csv is the results for the current 'gpt-4o' model.
+## Web UI
 
-## What You Need
-- Python 3.x
-- `requests`
-- `pandas`
-- `openai`
+A Flask web app with a dark-themed UI for running benchmarks interactively:
 
-## How to Set It Up
-git clone https://github.com/YOUR_USERNAME/ProjectEulerSolver.git
-cd ProjectEulerSolver
+- Enter API keys for any provider (Gemini, OpenAI, Anthropic, xAI)
+- Pick a problem number and select models
+- Watch results come in live with pass/fail, steps, time, and cost
+- Leaderboard tracks accuracy across all runs
+
+```bash
 pip install -r requirements.txt
+python app.py
+# Open http://localhost:5050
+```
 
-## How to Use It
-1. **Set Up Your API Key**
-   - Add your OpenAI API key to the code
-2. **Run the Script**
-   python solver.py
-   ```
+## CLI
 
-The results will be saved in `results.csv`.
+```bash
+# Solve a single problem
+python solver.py --model gemini-2.5-flash --problem 1
 
-## License
-This project is open-source under the MIT License. Check `LICENSE` for details.
+# Solve first 10 problems
+python solver.py --model gpt-4o-mini --limit 10
+
+# Interactive model picker
+python solver.py
+```
+
+## Supported models
+
+| Provider | Models |
+|----------|--------|
+| Gemini | gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite |
+| OpenAI | gpt-4o-mini, gpt-4o, o3-mini |
+| Anthropic | claude-sonnet-4-6, claude-haiku-3.5 |
+| xAI | grok-3-mini |
+
+## Results (Problem 1)
+
+| Model | Steps | Time | Cost | Result |
+|-------|-------|------|------|--------|
+| claude-haiku-3.5 | 1 | 5.5s | $0.0025 | PASS |
+| gemini-2.5-flash | 2 | 19.8s | $0.0004 | PASS |
+| gpt-4o-mini | 3 | 9.9s | $0.0002 | PASS |
+| grok-3-mini | 3 | 27.2s | $0.0005 | PASS |

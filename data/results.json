@@ -1,0 +1,42 @@
+[
+  {
+    "model_id": "gemini-2.5-flash",
+    "problem": 1,
+    "answer": "233168",
+    "expected": "233168",
+    "correct": true,
+    "steps": 2,
+    "time_s": 19.8,
+    "cost": 0.0004
+  },
+  {
+    "model_id": "gpt-4o-mini",
+    "problem": 1,
+    "answer": "233168",
+    "expected": "233168",
+    "correct": true,
+    "steps": 3,
+    "time_s": 9.9,
+    "cost": 0.0002
+  },
+  {
+    "model_id": "claude-haiku-3.5",
+    "problem": 1,
+    "answer": "233168",
+    "expected": "233168",
+    "correct": true,
+    "steps": 1,
+    "time_s": 5.5,
+    "cost": 0.0025
+  },
+  {
+    "model_id": "grok-3-mini",
+    "problem": 1,
+    "answer": "233168",
+    "expected": "233168",
+    "correct": true,
+    "steps": 3,
+    "time_s": 27.2,
+    "cost": 0.0005
+  }
+]

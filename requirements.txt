@@ -1,6 +1,7 @@
+python-dotenv
 requests
-pandas
+
+# Install the provider(s) you use:
+google-genai
 openai
-dotenv
 anthropic
-google-generativeai
