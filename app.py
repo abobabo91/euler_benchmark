@@ -10,8 +10,7 @@ import uuid
 from flask import Flask, jsonify, render_template, request
 
 from solver import (
-    MODEL_REGISTRY, COST_PER_1M, LLMChat, solve, fetch_problem, load_solutions,
-    WORKSPACE,
+    MODEL_REGISTRY, COST_PER_1M, solve, fetch_problem, load_solutions,
 )
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -202,11 +201,11 @@ def api_run():
         import time as _time
         t0 = _time.time()
         try:
-            chat = LLMChat(provider, api_model, api_key)
-            answer, steps, log = solve(problem_text, chat)
+            answer, steps, log, tok_in, tok_out = solve(problem_text, provider, api_model, api_key)
             elapsed = _time.time() - t0
             correct = (answer == expected) if expected else None
-            cost = chat.cost()
+            rates = COST_PER_1M.get(api_model, (0, 0))
+            cost = (tok_in * rates[0] + tok_out * rates[1]) / 1_000_000
             method = log[-1].get("method", "?") if log else "?"
 
             with runs_lock:
@@ -217,8 +216,8 @@ def api_run():
                     "correct": correct,
                     "time_s": round(elapsed, 1),
                     "cost": round(cost, 5),
-                    "tokens_in": chat.tokens_in,
-                    "tokens_out": chat.tokens_out,
+                    "tokens_in": tok_in,
+                    "tokens_out": tok_out,
                     "method": method,
                     "log": log,
                 })
