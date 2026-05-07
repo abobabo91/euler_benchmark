@@ -50,31 +50,38 @@ python solver.py
 
 ## Results
 
-Tested on 3 difficulty tiers across 4 newest fast models. 12/12 pass.
+Tested across 5 difficulty tiers. Models must write and execute code — direct guessing is flagged.
 
-### Problem 1 (easy) — sum of multiples of 3 or 5 below 1000
+### Summary
 
-| Model | Steps | Time | Cost |
-|-------|-------|------|------|
-| gpt-5.4-mini | 1 | 4.8s | $0.0002 |
-| gemini-3.1-flash-lite | 3 | 7.8s | $0.0002 |
-| claude-sonnet-4-6 | 3 | 7.3s | $0.0061 |
-| grok-3-mini | 3 | 27.6s | $0.0005 |
+| Model | P1 | P12 | P14 | P100 | P300 | Score |
+|-------|:--:|:---:|:---:|:----:|:----:|:-----:|
+| gemini-3.1-flash-lite | PASS | PASS | PASS | PASS | FAIL | 4/5 |
+| claude-sonnet-4-6 | PASS | PASS | PASS | PASS | FAIL | 4/5 |
+| gpt-5.4-mini | PASS | PASS | PASS | FAIL | FAIL | 3/5 |
+| grok-3-mini | PASS | PASS | PASS | FAIL | FAIL | 3/5 |
 
-### Problem 14 (medium) — longest Collatz sequence under 1M
+### P1 (easy) — multiples of 3/5
 
-| Model | Steps | Time | Cost |
-|-------|-------|------|------|
-| gemini-3.1-flash-lite | 3 | 9.5s | $0.0004 |
-| claude-sonnet-4-6 | 3 | 10.2s | $0.0119 |
-| gpt-5.4-mini | 3 | 10.4s | $0.0011 |
-| grok-3-mini | 3 | 69.8s | $0.0007 |
+All 4 pass. gpt-5.4-mini answered in 1 step without code (memorized).
 
-### Problem 12 (hard) — first triangle number with 500+ divisors
+### P14 (medium) — Collatz sequences
 
-| Model | Steps | Time | Cost |
-|-------|-------|------|------|
-| gpt-5.4-mini | 3 | 9.6s | $0.0016 |
-| gemini-3.1-flash-lite | 3 | 10.9s | $0.0004 |
-| claude-sonnet-4-6 | 3 | 12.9s | $0.0115 |
-| grok-3-mini | 3 | 45.1s | $0.0008 |
+All 4 pass. All wrote code. Grok slowest at 69.8s.
+
+### P12 (hard) — triangle number with 500+ divisors
+
+All 4 pass. All wrote efficient divisor-counting algorithms.
+
+### P100 (very hard) — Pell equation / Diophantine
+
+| Model | Result | Method | Time | Cost |
+|-------|--------|--------|------|------|
+| gemini-3.1-flash-lite | PASS | code | 10.5s | $0.0006 |
+| claude-sonnet-4-6 | PASS | code (with verification) | 34.2s | $0.0621 |
+| gpt-5.4-mini | FAIL | code (wrong algorithm) | 10.8s | $0.0014 |
+| grok-3-mini | FAIL | direct guess (wrong) | 83.5s | $0.0001 |
+
+### P300 (extreme) — 2D protein folding
+
+All 4 fail. Claude tried hardest (15 steps, 7 rewrites, $0.62 spent). Gemini hit timeouts and iterated. GPT and Grok gave up without writing code.

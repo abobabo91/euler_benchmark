@@ -203,10 +203,11 @@ def api_run():
         t0 = _time.time()
         try:
             chat = LLMChat(provider, api_model, api_key)
-            answer, steps = solve(problem_text, chat)
+            answer, steps, log = solve(problem_text, chat)
             elapsed = _time.time() - t0
             correct = (answer == expected) if expected else None
             cost = chat.cost()
+            method = log[-1].get("method", "?") if log else "?"
 
             with runs_lock:
                 runs[run_id]["model_results"][mid].update({
@@ -218,6 +219,8 @@ def api_run():
                     "cost": round(cost, 5),
                     "tokens_in": chat.tokens_in,
                     "tokens_out": chat.tokens_out,
+                    "method": method,
+                    "log": log,
                 })
 
             append_result({
@@ -229,6 +232,7 @@ def api_run():
                 "steps": steps,
                 "time_s": round(elapsed, 1),
                 "cost": round(cost, 5),
+                "method": method,
             })
 
         except Exception as e:

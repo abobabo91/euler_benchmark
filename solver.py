@@ -154,14 +154,16 @@ WORKFLOW:
 - Think about the math first. Identify the pattern or formula.
 - Write efficient Python code (avoid brute force when a formula exists).
 - Run it. If it errors or times out, read the error, fix, and retry.
-- When you have the answer, return it as final_answer.
+- ONLY submit final_answer AFTER you have written code, run it, and confirmed the output.
 
 RULES:
+- You MUST write and execute code to compute the answer. Do NOT guess or recall answers from memory.
 - You have NO internet access. Pure computation only.
 - Scripts time out after 30 seconds — use efficient algorithms.
 - The answer is always a single integer or number.
 - Use math, itertools, functools, collections — all stdlib is available.
 - For large problems, think about complexity before coding.
+- Your final_answer must match the exact output of your code. No guessing.
 
 TOOL FORMAT — respond with exactly one JSON block per message:
 
@@ -283,8 +285,10 @@ class LLMChat:
 
 # ── JSON parsing ────────────────────────────────────────────────────────────
 
-def parse_json(text: str) -> dict | None:
+def parse_json(text: str | None) -> dict | None:
     """Extract a JSON object from LLM output (handles code fences)."""
+    if not text:
+        return None
     # Try code-fenced JSON first
     m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
     if m:
@@ -315,21 +319,24 @@ def parse_json(text: str) -> dict | None:
 MAX_STEPS = 15
 
 
-def solve(problem_text: str, chat: LLMChat) -> tuple[str, int]:
+def solve(problem_text: str, chat: LLMChat) -> tuple[str, int, list[dict]]:
     """
-    Run the agent loop. Returns (answer, steps_used).
+    Run the agent loop. Returns (answer, steps_used, log).
+    Log contains each step: tool calls, code written, outputs.
     """
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"Solve this Project Euler problem:\n\n{problem_text}"},
     ]
+    log: list[dict] = []
 
     for step in range(1, MAX_STEPS + 1):
-        response = chat.send(messages)
+        response = chat.send(messages) or ""
         messages.append({"role": "assistant", "content": response})
 
         data = parse_json(response)
         if data is None:
+            log.append({"step": step, "action": "parse_error", "raw": response[:500]})
             messages.append({"role": "user", "content":
                 "No valid JSON found. Respond with exactly one JSON block: "
                 "either a tool call or {\"final_answer\": \"NUMBER\"}."})
@@ -338,23 +345,33 @@ def solve(problem_text: str, chat: LLMChat) -> tuple[str, int]:
         # Final answer
         if "final_answer" in data:
             ans = str(data["final_answer"]).strip()
-            print(f"  {GREEN}Step {step}: final_answer = {ans}{RESET}")
-            return ans, step
+            # Check if they wrote code or just guessed
+            wrote_code = any(e.get("action") == "write_file" for e in log)
+            ran_code = any(e.get("action") == "run_python" for e in log)
+            method = "code" if (wrote_code and ran_code) else "direct"
+            log.append({"step": step, "action": "final_answer", "answer": ans, "method": method})
+            print(f"  {GREEN}Step {step}: final_answer = {ans}  [{method}]{RESET}")
+            return ans, step, log
 
         # Tool call
         tool_name = data.get("tool")
         if tool_name not in TOOLS:
+            log.append({"step": step, "action": "unknown_tool", "tool": tool_name})
             messages.append({"role": "user", "content":
                 f"Unknown tool '{tool_name}'. Available: write_file, run_python, read_file."})
             continue
 
         # Execute
         if tool_name == "write_file":
-            result = write_file(data.get("filename", "solve.py"), data.get("content", ""))
+            code = data.get("content", "")
+            result = write_file(data.get("filename", "solve.py"), code)
+            log.append({"step": step, "action": "write_file", "code": code, "result": result})
         elif tool_name == "run_python":
             result = run_python(data.get("filename", "solve.py"))
+            log.append({"step": step, "action": "run_python", "output": result[:500]})
         elif tool_name == "read_file":
             result = read_file(data.get("filename", "solve.py"))
+            log.append({"step": step, "action": "read_file", "result": result[:500]})
 
         # Log
         preview = result[:120] + ("..." if len(result) > 120 else "")
@@ -362,7 +379,7 @@ def solve(problem_text: str, chat: LLMChat) -> tuple[str, int]:
 
         messages.append({"role": "user", "content": f"Tool output ({tool_name}):\n{result}"})
 
-    return "FAILED", MAX_STEPS
+    return "FAILED", MAX_STEPS, log
 
 
 # ── Problem fetching ────────────────────────────────────────────────────────
@@ -446,14 +463,15 @@ def main():
               (f"  {DIM}(expected: {expected}){RESET}" if expected else ""))
 
         t0 = time.time()
-        answer, steps = solve(text, chat)
+        answer, steps, log = solve(text, chat)
         elapsed = time.time() - t0
 
         correct = (answer == expected) if expected else None
+        method = log[-1].get("method", "?") if log else "?"
         mark = f"{GREEN}PASS{RESET}" if correct else (
                f"{RED}FAIL{RESET}" if correct is False else f"{DIM}?{RESET}")
 
-        print(f"  {mark}  answer={answer}  steps={steps}  time={elapsed:.1f}s")
+        print(f"  {mark}  answer={answer}  steps={steps}  method={method}  time={elapsed:.1f}s")
         results.append({
             "problem": pn, "answer": answer, "expected": expected or "",
             "correct": correct, "steps": steps, "time_s": round(elapsed, 1),
