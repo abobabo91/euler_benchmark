@@ -2,26 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Euler Solver Benchmark</title>
+<title>Euler Solver — Agentic LLM Benchmark</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
 ::-webkit-scrollbar{width:6px;background:#161b22}::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
 
+/* Header */
 .header{background:#161b22;border-bottom:1px solid #30363d;padding:14px 24px;display:flex;align-items:center;gap:12px}
 .header h1{font-size:1.3rem;font-weight:700}.header .sub{font-size:.82rem;color:#8b949e;margin-left:auto}
+
+/* Tabs */
 .tabs{display:flex;gap:2px;padding:0 24px;background:#161b22;border-bottom:1px solid #30363d}
 .tab{padding:11px 18px;cursor:pointer;color:#8b949e;font-size:.88rem;border-bottom:2px solid transparent;transition:all .15s}
 .tab:hover{color:#e6edf3}.tab.active{color:#58a6ff;border-bottom-color:#58a6ff}
-.pane{display:none;padding:20px 24px;max-width:1000px;margin:0 auto}.pane.active{display:block}
+.pane{display:none;padding:20px 24px;max-width:1200px;margin:0 auto}.pane.active{display:block}
 
+/* Cards */
 .card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:18px;margin-bottom:14px}
 .card h3{font-size:.78rem;color:#8b949e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
 label{display:block;font-size:.83rem;color:#8b949e;margin-bottom:5px}
 input,select{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 11px;color:#e6edf3;font-size:.88rem;outline:none}
 input:focus,select:focus{border-color:#58a6ff}
 
-.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:8px}
+/* Selector bar */
+.sel-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.sel-btn{padding:4px 13px;border-radius:16px;border:1px solid #30363d;background:#0d1117;color:#8b949e;font-size:.76rem;cursor:pointer;transition:all .15s;font-weight:500}
+.sel-btn:hover{border-color:#58a6ff;color:#58a6ff}
+.sel-btn.active{background:#1a2a3a;border-color:#58a6ff;color:#58a6ff}
+
+/* Model grid */
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:6px}
 .mc{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #30363d;border-radius:7px;cursor:pointer;transition:all .15s;background:#0d1117}
 .mc:hover{border-color:#58a6ff;background:#161b22}
 .mc.on{border-color:var(--c);background:#161b22}
@@ -31,6 +42,7 @@ input:focus,select:focus{border-color:#58a6ff}
 .mc .lbl{font-size:.8rem;color:#e6edf3;flex:1}
 .mc .prov{font-size:.63rem;color:#6e7681}
 
+/* Buttons */
 .btn{padding:9px 20px;border:none;border-radius:7px;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s}
 .btn-green{background:#238636;color:#fff}.btn-green:hover{background:#2ea043}
 .btn-green:disabled{background:#30363d;color:#8b949e;cursor:not-allowed}
@@ -39,8 +51,8 @@ input:focus,select:focus{border-color:#58a6ff}
 .btn-ghost{background:transparent;border:1px solid #30363d;color:#8b949e}.btn-ghost:hover{border-color:#58a6ff;color:#58a6ff}
 .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt{margin-top:12px}
 
-/* Results lanes */
-.lanes{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:14px}
+/* Race lanes */
+.lanes{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:14px}
 .lane{background:#161b22;border:1px solid #30363d;border-radius:9px;padding:14px;transition:border-color .3s}
 .lane.pass{border-color:#238636}.lane.fail{border-color:#da3633}.lane.running{border-color:#388bfd}
 .lane-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px}
@@ -49,10 +61,17 @@ input:focus,select:focus{border-color:#58a6ff}
 .lstatus{font-size:.72rem;padding:2px 7px;border-radius:12px;background:#21262d;color:#8b949e}
 .lstatus.pass{background:#1a3a1f;color:#3fb950}.lstatus.fail{background:#3a1a1a;color:#f85149}
 .lstatus.running{background:#1a2a3a;color:#58a6ff}
+.lane-answer{font-size:1.15rem;font-weight:700;margin-top:6px}
+.lane-answer.pass{color:#3fb950}.lane-answer.fail{color:#f85149}
 .lane-row{display:flex;justify-content:space-between;font-size:.82rem;color:#8b949e;margin-top:5px}
 .lane-row .val{color:#e6edf3;font-weight:600}
-.lane-answer{font-size:1.1rem;font-weight:700;margin-top:6px}
-.lane-answer.pass{color:#3fb950}.lane-answer.fail{color:#f85149}
+.lane-method{display:inline-block;font-size:.68rem;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500}
+.lane-method.code{background:#1a3a1f;color:#3fb950}.lane-method.direct{background:#3a2a1a;color:#f0883e}
+.log-toggle{font-size:.75rem;color:#58a6ff;cursor:pointer;margin-top:6px;user-select:none}
+.log-toggle:hover{text-decoration:underline}
+.log-box{display:none;margin-top:6px;background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:8px;max-height:200px;overflow-y:auto;font-family:'SF Mono','Fira Code',monospace;font-size:.72rem;line-height:1.6;color:#8b949e}
+.log-box.open{display:block}
+.log-step{color:#fbbf24}.log-code{color:#6e7681;white-space:pre-wrap;word-break:break-all}.log-out{color:#58a6ff}
 
 /* Leaderboard */
 table{width:100%;border-collapse:collapse;font-size:.85rem}
@@ -63,6 +82,12 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#21262d}
 .acc{font-weight:700;font-size:.95rem}
 .wbar{display:inline-block;height:5px;border-radius:3px;vertical-align:middle;margin-left:5px;background:#238636}
 
+/* Results history */
+.res-row{display:grid;grid-template-columns:50px 1fr 80px 60px 70px 70px 70px;gap:4px;padding:8px 12px;border-bottom:1px solid #21262d;font-size:.83rem;align-items:center}
+.res-row:hover{background:#21262d}
+.res-hdr{color:#8b949e;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;font-weight:600;border-bottom:1px solid #30363d}
+.res-pass{color:#3fb950;font-weight:700}.res-fail{color:#f85149;font-weight:700}
+
 /* Settings */
 .krow{display:grid;grid-template-columns:160px 1fr auto;align-items:center;gap:9px;margin-bottom:10px}
 .krow label{margin:0;color:#c9d1d9;font-size:.86rem}
@@ -70,37 +95,50 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#21262d}
 .kstat.ok{background:#1a3a1f;color:#3fb950}.kstat.no{background:#3a1a1a;color:#f85149}
 input[type=password]{font-family:monospace;letter-spacing:.08em}
 .empty{text-align:center;padding:36px;color:#8b949e;font-size:.88rem}
-
-.prov-colors{--gemini:#4285f4;--openai:#10c87f;--anthropic:#e8937a;--xai:#8b5cf6}
+.tip{background:#1a2a3a;border:1px solid #30363d;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#8b949e}
 </style>
 </head>
-<body class="prov-colors">
+<body>
 
 <div class="header">
   <h1>Euler Solver</h1>
-  <span class="sub">Agentic LLM benchmark on Project Euler problems</span>
+  <span class="sub">Agentic LLM benchmark on Project Euler</span>
 </div>
 
 <div class="tabs">
   <div class="tab active" onclick="showTab('solve')">Solve</div>
   <div class="tab" onclick="showTab('leaderboard')">Leaderboard</div>
+  <div class="tab" onclick="showTab('results')">Results</div>
   <div class="tab" onclick="showTab('settings')">Settings</div>
 </div>
 
-<!-- SOLVE -->
+<!-- ── SOLVE ── -->
 <div id="pane-solve" class="pane active">
+  <div class="tip">
+    Models write Python code, execute it, debug errors, and iterate until they find the answer.
+    They never see the correct solution — answers are compared after submission.
+  </div>
+
   <div class="card">
     <h3>Problem</h3>
     <div class="flex">
-      <div style="flex:1">
+      <div>
         <label>Problem number (1-900+)</label>
-        <input type="number" id="problemNum" value="1" min="1" max="999" style="max-width:120px">
+        <input type="number" id="problemNum" value="1" min="1" max="999" style="width:100px">
+      </div>
+      <div class="sel-bar" style="margin-left:16px;margin-bottom:0">
+        <span class="sel-btn" onclick="document.getElementById('problemNum').value=1">P1 easy</span>
+        <span class="sel-btn" onclick="document.getElementById('problemNum').value=14">P14 med</span>
+        <span class="sel-btn" onclick="document.getElementById('problemNum').value=12">P12 hard</span>
+        <span class="sel-btn" onclick="document.getElementById('problemNum').value=100">P100 v.hard</span>
+        <span class="sel-btn" onclick="document.getElementById('problemNum').value=300">P300 extreme</span>
       </div>
     </div>
   </div>
 
   <div class="card">
     <h3>Models</h3>
+    <div class="sel-bar" id="selBar"></div>
     <div class="model-grid" id="modelGrid"></div>
   </div>
 
@@ -112,7 +150,7 @@ input[type=password]{font-family:monospace;letter-spacing:.08em}
   <div id="resultsArea"></div>
 </div>
 
-<!-- LEADERBOARD -->
+<!-- ── LEADERBOARD ── -->
 <div id="pane-leaderboard" class="pane">
   <div class="card">
     <div class="flex" style="justify-content:space-between;margin-bottom:12px">
@@ -123,11 +161,21 @@ input[type=password]{font-family:monospace;letter-spacing:.08em}
   </div>
 </div>
 
-<!-- SETTINGS -->
+<!-- ── RESULTS ── -->
+<div id="pane-results" class="pane">
+  <div class="card">
+    <h3>All Results</h3>
+    <div id="resBody"></div>
+  </div>
+</div>
+
+<!-- ── SETTINGS ── -->
 <div id="pane-settings" class="pane">
   <div class="card">
     <h3>API Keys</h3>
-    <p style="font-size:.82rem;color:#8b949e;margin-bottom:14px">Keys are stored server-side. Enter the key for each provider you want to use.</p>
+    <p style="font-size:.82rem;color:#8b949e;margin-bottom:14px">
+      Enter the API key for each provider you want to use. Keys are stored server-side and never sent to the browser.
+    </p>
     <div class="krow">
       <label>Gemini</label>
       <input type="password" id="key-GEMINI_API_KEY" placeholder="AIza...">
@@ -153,15 +201,19 @@ input[type=password]{font-family:monospace;letter-spacing:.08em}
 </div>
 
 <script>
-const PROV_COLORS = {gemini:'#4285f4',openai:'#10c87f',anthropic:'#e8937a',xai:'#8b5cf6'};
+const PC = {gemini:'#4285f4',openai:'#10c87f',anthropic:'#e8937a',xai:'#8b5cf6'};
 let models = [];
 let selectedModels = new Set();
 let pollTimer = null;
 
 function showTab(id) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', t.textContent.trim().toLowerCase()===id));
+  document.querySelectorAll('.tab').forEach(t => {
+    const name = t.textContent.trim().toLowerCase();
+    t.classList.toggle('active', name===id);
+  });
   document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id==='pane-'+id));
   if (id==='leaderboard') loadLeaderboard();
+  if (id==='results') loadHistory();
   if (id==='settings') loadKeys();
 }
 
@@ -169,15 +221,29 @@ function showTab(id) {
 async function loadModels() {
   const r = await fetch('/api/models');
   models = await r.json();
+  renderModels();
+}
+
+function renderModels(filter) {
+  // Selector bar
+  const provs = [...new Set(models.map(m=>m.provider))];
+  const bar = document.getElementById('selBar');
+  bar.innerHTML = '<span class="sel-btn active" onclick="filterModels()">All</span>';
+  provs.forEach(p => {
+    bar.innerHTML += `<span class="sel-btn" onclick="filterModels('${p}')" style="--c:${PC[p]||'#8b949e'}">${p}</span>`;
+  });
+
   const grid = document.getElementById('modelGrid');
   grid.innerHTML = '';
   models.forEach(m => {
-    const c = PROV_COLORS[m.provider]||'#8b949e';
+    if (filter && m.provider !== filter) return;
+    const c = PC[m.provider]||'#8b949e';
     const off = !m.available;
+    const on = selectedModels.has(m.id);
     const div = document.createElement('div');
-    div.className = `mc${off?' off':''}`;
+    div.className = `mc${off?' off':''}${on?' on':''}`;
     div.style.setProperty('--c', c);
-    div.innerHTML = `<input type="checkbox" ${off?'disabled':''} data-id="${m.id}"><div class="dot"></div><div><div class="lbl">${m.id}</div><div class="prov">${m.provider}</div></div>`;
+    div.innerHTML = `<input type="checkbox" ${off?'disabled':''}${on?' checked':''} data-id="${m.id}"><div class="dot"></div><div><div class="lbl">${m.id}</div><div class="prov">${m.provider}</div></div>`;
     if (!off) {
       div.onclick = () => {
         const cb = div.querySelector('input');
@@ -190,10 +256,17 @@ async function loadModels() {
   });
 }
 
+function filterModels(prov) {
+  document.querySelectorAll('#selBar .sel-btn').forEach(b => {
+    b.classList.toggle('active', prov ? b.textContent===prov : b.textContent==='All');
+  });
+  renderModels(prov);
+}
+
 // ── Run ──
 async function startRun() {
   const pn = parseInt(document.getElementById('problemNum').value);
-  if (!pn || selectedModels.size===0) return;
+  if (!pn || selectedModels.size===0) { document.getElementById('runStatus').textContent='Select at least one model'; return; }
   document.getElementById('runBtn').disabled = true;
   document.getElementById('runStatus').textContent = 'Starting...';
   document.getElementById('resultsArea').innerHTML = '';
@@ -213,10 +286,11 @@ async function startRun() {
 
 function pollStatus(runId, pn) {
   if (pollTimer) clearInterval(pollTimer);
+  document.getElementById('runStatus').textContent = 'Running...';
   pollTimer = setInterval(async () => {
     const r = await fetch(`/api/status/${runId}`);
     const data = await r.json();
-    renderResults(data, pn);
+    renderLanes(data, pn);
     const allDone = Object.values(data.model_results).every(m => m.status!=='pending' && m.status!=='running');
     if (allDone) {
       clearInterval(pollTimer);
@@ -226,47 +300,111 @@ function pollStatus(runId, pn) {
   }, 1500);
 }
 
-function renderResults(data, pn) {
+function renderLanes(data, pn) {
   const area = document.getElementById('resultsArea');
   const exp = data.expected;
-  let html = `<div style="margin-top:14px;font-size:.9rem;color:#8b949e">Problem ${pn}${exp?' — expected: <b style="color:#e6edf3">'+exp+'</b>':''}</div><div class="lanes">`;
+  let html = `<div style="margin-top:16px;font-size:.9rem;color:#8b949e;margin-bottom:4px">Problem ${pn}${exp?' — expected: <b style="color:#e6edf3">'+exp+'</b>':''}</div><div class="lanes">`;
+
   for (const [mid, m] of Object.entries(data.model_results)) {
     const prov = (models.find(x=>x.id===mid)||{}).provider||'';
-    const c = PROV_COLORS[prov]||'#8b949e';
+    const c = PC[prov]||'#8b949e';
     const cls = m.status==='done'?(m.correct?'pass':'fail'):m.status==='running'?'running':'';
     const stCls = m.correct?'pass':m.correct===false?'fail':m.status==='running'?'running':'';
     const stTxt = m.status==='done'?(m.correct?'PASS':'FAIL'):m.status==='running'?'running':m.status==='error'?'error':'pending';
-    html += `<div class="lane ${cls}" style="--c:${c}">
-      <div class="lane-hd"><div class="ldot"></div><div class="lname">${mid}</div><span class="lstatus ${stCls}">${stTxt}</span></div>`;
-    if (m.answer) html += `<div class="lane-answer ${m.correct?'pass':'fail'}">${m.answer}</div>`;
-    if (m.error) html += `<div style="color:#f85149;font-size:.82rem;margin-top:4px">${m.error}</div>`;
-    if (m.status==='done' || m.status==='running') {
-      html += `<div class="lane-row"><span>Steps</span><span class="val">${m.steps}</span></div>`;
-      html += `<div class="lane-row"><span>Time</span><span class="val">${m.time_s}s</span></div>`;
-      if (m.cost) html += `<div class="lane-row"><span>Cost</span><span class="val">$${m.cost.toFixed(4)}</span></div>`;
+
+    html += `<div class="lane ${cls}" style="--c:${c}">`;
+    html += `<div class="lane-hd"><div class="ldot"></div><div class="lname">${mid}</div><span class="lstatus ${stCls}">${stTxt}</span></div>`;
+
+    if (m.answer && m.answer!=='FAILED') {
+      const meth = m.method||'';
+      html += `<div class="lane-answer ${m.correct?'pass':'fail'}">${m.answer}<span class="lane-method ${meth}">${meth}</span></div>`;
+    } else if (m.answer==='FAILED') {
+      html += `<div class="lane-answer fail">FAILED (max steps)</div>`;
     }
+
+    if (m.error) html += `<div style="color:#f85149;font-size:.82rem;margin-top:4px">${m.error}</div>`;
+
+    if (m.status==='done' || m.status==='running') {
+      html += `<div class="lane-row"><span>Steps</span><span class="val">${m.steps||0}</span></div>`;
+      html += `<div class="lane-row"><span>Time</span><span class="val">${(m.time_s||0).toFixed?m.time_s.toFixed(1):m.time_s}s</span></div>`;
+      if (m.cost) html += `<div class="lane-row"><span>Cost</span><span class="val">$${m.cost.toFixed(4)}</span></div>`;
+      if (m.tokens_in) html += `<div class="lane-row"><span>Tokens</span><span class="val">${m.tokens_in.toLocaleString()} in / ${m.tokens_out.toLocaleString()} out</span></div>`;
+    }
+
+    // Agent log
+    if (m.log && m.log.length) {
+      const lid = 'log-'+mid.replace(/[^a-z0-9]/gi,'');
+      html += `<div class="log-toggle" onclick="document.getElementById('${lid}').classList.toggle('open')">show agent log</div>`;
+      html += `<div class="log-box" id="${lid}">`;
+      m.log.forEach(e => {
+        if (e.action==='write_file') {
+          html += `<div class="log-step">Step ${e.step}: write_file</div>`;
+          html += `<div class="log-code">${esc(e.code||'').substring(0,600)}</div>`;
+        } else if (e.action==='run_python') {
+          html += `<div class="log-step">Step ${e.step}: run_python</div>`;
+          html += `<div class="log-out">${esc(e.output||'')}</div>`;
+        } else if (e.action==='final_answer') {
+          html += `<div class="log-step">Step ${e.step}: final_answer = ${esc(e.answer)} [${e.method}]</div>`;
+        } else {
+          html += `<div class="log-step">Step ${e.step}: ${e.action}</div>`;
+        }
+      });
+      html += '</div>';
+    }
+
     html += `</div>`;
   }
   html += '</div>';
   area.innerHTML = html;
-  document.getElementById('runStatus').textContent = 'Running...';
 }
+
+function esc(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 
 // ── Leaderboard ──
 async function loadLeaderboard() {
   const r = await fetch('/api/leaderboard');
   const rows = await r.json();
   const body = document.getElementById('lbBody');
-  if (!rows.length) { body.innerHTML = '<div class="empty">No results yet. Run some problems first.</div>'; return; }
+  if (!rows.length) { body.innerHTML = '<div class="empty">No results yet. Solve some problems first.</div>'; return; }
+
   let html = '<table><thead><tr><th>#</th><th>Model</th><th>Runs</th><th>Accuracy</th><th>Avg Steps</th><th>Avg Time</th><th>Avg Cost</th></tr></thead><tbody>';
   rows.forEach((r,i) => {
     const rkCls = i<3?` rk${i+1}`:'';
-    const barW = Math.round(r.accuracy);
-    html += `<tr><td class="rk${rkCls}">${i+1}</td><td><b>${r.model_id}</b></td><td>${r.runs}</td>`;
+    const barW = Math.min(100, Math.round(r.accuracy));
+    html += `<tr>`;
+    html += `<td class="rk${rkCls}">${i+1}</td>`;
+    html += `<td><b>${r.model_id}</b></td>`;
+    html += `<td>${r.runs}</td>`;
     html += `<td><span class="acc">${r.accuracy}%</span><span class="wbar" style="width:${barW}px"></span></td>`;
-    html += `<td>${r.avg_steps}</td><td>${r.avg_time}s</td><td>$${r.avg_cost.toFixed(4)}</td></tr>`;
+    html += `<td>${r.avg_steps}</td>`;
+    html += `<td>${r.avg_time}s</td>`;
+    html += `<td>$${r.avg_cost.toFixed(4)}</td>`;
+    html += `</tr>`;
   });
   html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+// ── Results History ──
+async function loadHistory() {
+  const r = await fetch('/api/results');
+  const results = await r.json();
+  const body = document.getElementById('resBody');
+  if (!results.length) { body.innerHTML = '<div class="empty">No results yet.</div>'; return; }
+
+  let html = '<div class="res-row res-hdr"><span>Problem</span><span>Model</span><span>Answer</span><span>Method</span><span>Steps</span><span>Time</span><span>Cost</span></div>';
+  results.slice().reverse().forEach(r => {
+    const cls = r.correct?'res-pass':r.correct===false?'res-fail':'';
+    html += `<div class="res-row">`;
+    html += `<span>P${r.problem}</span>`;
+    html += `<span><b>${r.model_id}</b></span>`;
+    html += `<span class="${cls}">${r.answer||'—'}</span>`;
+    html += `<span>${r.method||'—'}</span>`;
+    html += `<span>${r.steps||'—'}</span>`;
+    html += `<span>${r.time_s||'—'}s</span>`;
+    html += `<span>$${(r.cost||0).toFixed(4)}</span>`;
+    html += `</div>`;
+  });
   body.innerHTML = html;
 }
 
@@ -286,11 +424,11 @@ async function loadKeys() {
 async function saveKeys() {
   const payload = {};
   for (const key of ['GEMINI_API_KEY','OPENAI_API_KEY','ANTHROPIC_API_KEY','XAI_API_KEY']) {
-    const input = document.getElementById('key-'+key);
-    if (input.value.trim()) payload[key] = input.value.trim();
+    const el = document.getElementById('key-'+key);
+    if (el.value.trim()) payload[key] = el.value.trim();
   }
   await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-  for (const input of document.querySelectorAll('#pane-settings input')) input.value = '';
+  document.querySelectorAll('#pane-settings input[type=password]').forEach(i => i.value='');
   await loadKeys();
   await loadModels();
 }
