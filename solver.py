@@ -38,28 +38,32 @@ load_dotenv()
 
 MODEL_REGISTRY: dict[str, tuple[str, str]] = {
     # Gemini
+    "gemini-3.1-flash-lite":         ("gemini",    "gemini-3.1-flash-lite-preview"),
+    "gemini-3.1-pro":                ("gemini",    "gemini-3.1-pro-preview"),
     "gemini-2.5-flash":              ("gemini",    "gemini-2.5-flash"),
     "gemini-2.5-pro":                ("gemini",    "gemini-2.5-pro-preview-05-06"),
-    "gemini-2.5-flash-lite":         ("gemini",    "gemini-2.5-flash-lite-preview"),
     # OpenAI
+    "gpt-5.4-mini":                  ("openai",    "gpt-5.4-mini"),
+    "gpt-5.4-nano":                  ("openai",    "gpt-5.4-nano"),
     "gpt-4o-mini":                   ("openai",    "gpt-4o-mini"),
-    "gpt-4o":                        ("openai",    "gpt-4o"),
     "o3-mini":                       ("openai",    "o3-mini"),
     # Anthropic
-    "claude-sonnet-4-6":             ("anthropic", "claude-sonnet-4-6-20250514"),
-    "claude-haiku-3.5":              ("anthropic", "claude-haiku-4-5-20251001"),
+    "claude-sonnet-4-6":             ("anthropic", "claude-sonnet-4-6"),
+    "claude-haiku-4.5":              ("anthropic", "claude-haiku-4-5-20251001"),
     # xAI
     "grok-3-mini":                   ("xai",       "grok-3-mini"),
 }
 
 COST_PER_1M: dict[str, tuple[float, float]] = {
-    "gemini-2.5-flash":      (0.15,   0.60),
-    "gemini-2.5-pro-preview-05-06": (1.25,  10.00),
-    "gemini-2.5-flash-lite-preview": (0.075, 0.30),
+    "gemini-3.1-flash-lite-preview": (0.10,  0.40),
+    "gemini-3.1-pro-preview":        (3.50, 10.50),
+    "gemini-2.5-flash":              (0.15,  0.60),
+    "gemini-2.5-pro-preview-05-06":  (1.25, 10.00),
+    "gpt-5.4-mini":          (0.40,   1.60),
+    "gpt-5.4-nano":          (0.10,   0.40),
     "gpt-4o-mini":           (0.15,   0.60),
-    "gpt-4o":                (2.50,  10.00),
     "o3-mini":               (1.10,   4.40),
-    "claude-sonnet-4-6-20250514": (3.00, 15.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
     "claude-haiku-4-5-20251001":  (0.80,  4.00),
     "grok-3-mini":           (0.30,   0.50),
 }

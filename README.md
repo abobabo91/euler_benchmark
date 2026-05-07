@@ -30,10 +30,10 @@ python app.py
 
 ```bash
 # Solve a single problem
-python solver.py --model gemini-2.5-flash --problem 1
+python solver.py --model gemini-3.1-flash-lite --problem 1
 
 # Solve first 10 problems
-python solver.py --model gpt-4o-mini --limit 10
+python solver.py --model gpt-5.4-mini --limit 10
 
 # Interactive model picker
 python solver.py
@@ -43,16 +43,38 @@ python solver.py
 
 | Provider | Models |
 |----------|--------|
-| Gemini | gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite |
-| OpenAI | gpt-4o-mini, gpt-4o, o3-mini |
-| Anthropic | claude-sonnet-4-6, claude-haiku-3.5 |
+| Gemini | gemini-3.1-flash-lite, gemini-3.1-pro, gemini-2.5-flash, gemini-2.5-pro |
+| OpenAI | gpt-5.4-mini, gpt-5.4-nano, gpt-4o-mini, o3-mini |
+| Anthropic | claude-sonnet-4-6, claude-haiku-4.5 |
 | xAI | grok-3-mini |
 
-## Results (Problem 1)
+## Results
 
-| Model | Steps | Time | Cost | Result |
-|-------|-------|------|------|--------|
-| claude-haiku-3.5 | 1 | 5.5s | $0.0025 | PASS |
-| gemini-2.5-flash | 2 | 19.8s | $0.0004 | PASS |
-| gpt-4o-mini | 3 | 9.9s | $0.0002 | PASS |
-| grok-3-mini | 3 | 27.2s | $0.0005 | PASS |
+Tested on 3 difficulty tiers across 4 newest fast models. 12/12 pass.
+
+### Problem 1 (easy) — sum of multiples of 3 or 5 below 1000
+
+| Model | Steps | Time | Cost |
+|-------|-------|------|------|
+| gpt-5.4-mini | 1 | 4.8s | $0.0002 |
+| gemini-3.1-flash-lite | 3 | 7.8s | $0.0002 |
+| claude-sonnet-4-6 | 3 | 7.3s | $0.0061 |
+| grok-3-mini | 3 | 27.6s | $0.0005 |
+
+### Problem 14 (medium) — longest Collatz sequence under 1M
+
+| Model | Steps | Time | Cost |
+|-------|-------|------|------|
+| gemini-3.1-flash-lite | 3 | 9.5s | $0.0004 |
+| claude-sonnet-4-6 | 3 | 10.2s | $0.0119 |
+| gpt-5.4-mini | 3 | 10.4s | $0.0011 |
+| grok-3-mini | 3 | 69.8s | $0.0007 |
+
+### Problem 12 (hard) — first triangle number with 500+ divisors
+
+| Model | Steps | Time | Cost |
+|-------|-------|------|------|
+| gpt-5.4-mini | 3 | 9.6s | $0.0016 |
+| gemini-3.1-flash-lite | 3 | 10.9s | $0.0004 |
+| claude-sonnet-4-6 | 3 | 12.9s | $0.0115 |
+| grok-3-mini | 3 | 45.1s | $0.0008 |

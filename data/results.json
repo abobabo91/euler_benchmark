@@ -1,42 +1,14 @@
 [
-  {
-    "model_id": "gemini-2.5-flash",
-    "problem": 1,
-    "answer": "233168",
-    "expected": "233168",
-    "correct": true,
-    "steps": 2,
-    "time_s": 19.8,
-    "cost": 0.0004
-  },
-  {
-    "model_id": "gpt-4o-mini",
-    "problem": 1,
-    "answer": "233168",
-    "expected": "233168",
-    "correct": true,
-    "steps": 3,
-    "time_s": 9.9,
-    "cost": 0.0002
-  },
-  {
-    "model_id": "claude-haiku-3.5",
-    "problem": 1,
-    "answer": "233168",
-    "expected": "233168",
-    "correct": true,
-    "steps": 1,
-    "time_s": 5.5,
-    "cost": 0.0025
-  },
-  {
-    "model_id": "grok-3-mini",
-    "problem": 1,
-    "answer": "233168",
-    "expected": "233168",
-    "correct": true,
-    "steps": 3,
-    "time_s": 27.2,
-    "cost": 0.0005
-  }
+  {"model_id": "gemini-3.1-flash-lite", "problem": 1, "answer": "233168", "expected": "233168", "correct": true, "steps": 3, "time_s": 7.8, "cost": 0.0002},
+  {"model_id": "gpt-5.4-mini", "problem": 1, "answer": "233168", "expected": "233168", "correct": true, "steps": 1, "time_s": 4.8, "cost": 0.0002},
+  {"model_id": "claude-sonnet-4-6", "problem": 1, "answer": "233168", "expected": "233168", "correct": true, "steps": 3, "time_s": 7.3, "cost": 0.0061},
+  {"model_id": "grok-3-mini", "problem": 1, "answer": "233168", "expected": "233168", "correct": true, "steps": 3, "time_s": 27.6, "cost": 0.0005},
+  {"model_id": "gemini-3.1-flash-lite", "problem": 14, "answer": "837799", "expected": "837799", "correct": true, "steps": 3, "time_s": 9.5, "cost": 0.0004},
+  {"model_id": "gpt-5.4-mini", "problem": 14, "answer": "837799", "expected": "837799", "correct": true, "steps": 3, "time_s": 10.4, "cost": 0.0011},
+  {"model_id": "claude-sonnet-4-6", "problem": 14, "answer": "837799", "expected": "837799", "correct": true, "steps": 3, "time_s": 10.2, "cost": 0.0119},
+  {"model_id": "grok-3-mini", "problem": 14, "answer": "837799", "expected": "837799", "correct": true, "steps": 3, "time_s": 69.8, "cost": 0.0007},
+  {"model_id": "gemini-3.1-flash-lite", "problem": 12, "answer": "76576500", "expected": "76576500", "correct": true, "steps": 3, "time_s": 10.9, "cost": 0.0004},
+  {"model_id": "gpt-5.4-mini", "problem": 12, "answer": "76576500", "expected": "76576500", "correct": true, "steps": 3, "time_s": 9.6, "cost": 0.0016},
+  {"model_id": "claude-sonnet-4-6", "problem": 12, "answer": "76576500", "expected": "76576500", "correct": true, "steps": 3, "time_s": 12.9, "cost": 0.0115},
+  {"model_id": "grok-3-mini", "problem": 12, "answer": "76576500", "expected": "76576500", "correct": true, "steps": 3, "time_s": 45.1, "cost": 0.0008}
 ]
