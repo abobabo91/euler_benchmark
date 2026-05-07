@@ -232,6 +232,7 @@ def api_run():
                 "time_s": round(elapsed, 1),
                 "cost": round(cost, 5),
                 "method": method,
+                "log": log,
             })
 
         except Exception as e:

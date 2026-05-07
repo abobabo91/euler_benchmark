@@ -443,6 +443,7 @@ def main():
     parser = argparse.ArgumentParser(description="Agentic Project Euler Solver")
     parser.add_argument("--model", choices=list(MODEL_REGISTRY.keys()))
     parser.add_argument("--problem", type=int)
+    parser.add_argument("--start", type=int, help="Start from this problem number")
     parser.add_argument("--limit", type=int)
     args = parser.parse_args()
 
@@ -472,6 +473,8 @@ def main():
         problem_nums = [args.problem]
     else:
         problem_nums = sorted(solutions.keys())
+        if args.start:
+            problem_nums = [p for p in problem_nums if p >= args.start]
         if args.limit:
             problem_nums = problem_nums[:args.limit]
 
@@ -509,10 +512,12 @@ def main():
                f"{RED}FAIL{RESET}" if correct is False else f"{DIM}?{RESET}")
 
         print(f"  {mark}  answer={answer}  steps={steps}  method={method}  time={elapsed:.1f}s")
+        rates = COST_PER_1M.get(api_model, (0, 0))
+        prob_cost = (tok_in * rates[0] + tok_out * rates[1]) / 1_000_000
         results.append({
             "problem": pn, "answer": answer, "expected": expected or "",
             "correct": correct, "steps": steps, "time_s": round(elapsed, 1),
-            "method": method,
+            "method": method, "cost": round(prob_cost, 5), "log": log,
         })
 
     if results:
@@ -528,12 +533,23 @@ def main():
         print(f"  Tokens: {total_tok_in:,} in / {total_tok_out:,} out  (~${cost:.4f})")
         print(f"{'=' * 50}\n")
 
-        csv_path = f"results_{model_key.replace('.', '_')}.csv"
-        with open(csv_path, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=results[0].keys())
-            w.writeheader()
-            w.writerows(results)
-        print(f"  Saved to {csv_path}")
+        # Save JSON with full logs
+        json_path = f"results_{model_key.replace('.', '_')}.json"
+        with open(json_path, "w") as f:
+            json.dump([{**r, "model_id": model_key} for r in results], f, indent=2)
+        print(f"  Saved to {json_path}")
+
+        # Also append to data/results.json for the web UI
+        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "results.json")
+        try:
+            with open(data_path) as f:
+                existing = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            existing = []
+        existing.extend([{**r, "model_id": model_key} for r in results])
+        with open(data_path, "w") as f:
+            json.dump(existing, f, indent=2)
+        print(f"  Appended to data/results.json ({len(existing)} total)")
 
 
 if __name__ == "__main__":
