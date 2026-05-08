@@ -73,10 +73,26 @@ python solver.py
 
 | Model | Problems Tested | Correct | Accuracy | Cost | Avg Time/Problem |
 |-------|:-:|:-:|:-:|:-:|:-:|
+| **claude-opus-4-7** | 2 | 2 | **100.0%** | $9.96 | 4.7min |
 | **claude-haiku-4.5** | 5 | 5 | **100.0%** | $0.15 | 39.7s |
-| **gemini-3.1-flash-lite** | 116 | 111 | **95.7%** | $0.38 | ~10s |
+| **gemini-3.1-flash-lite** | 118 | 111 | **94.1%** | $0.42 | ~10s |
+| **gemini-3.1-pro** | 2 | 1 | **50.0%** | $1.32 | 8.4min |
 | **gpt-5.4-mini** | 5 | 4 | **80.0%** | $0.01 | 8.9s |
+| **gpt-5.4** | 2 | 0 | **0.0%** | $0.19 | 2.2min |
 | **grok-3-mini** | 5 | 3 | **60.0%** | $0.01 | 118.1s |
+
+### Flagship showdown (P685 + P562)
+
+Two hard problems (difficulty 500+) tested across flagship models:
+
+| Model | P685 (digit sums) | P562 (geometry) | Cost |
+|-------|:--:|:--:|:--:|
+| **claude-opus-4-7** | PASS | PASS | $9.96 |
+| gemini-3.1-pro | PASS | FAIL | $1.32 |
+| gpt-5.4 | FAIL | CRASH | $0.19 |
+| gemini-3.1-flash-lite | FAIL | FAIL | $0.04 |
+
+Opus is the only model that solved both. GPT-5.4 crashed on P562 due to OpenAI's content policy flagging a geometry problem mid-conversation.
 
 ### Key findings
 
