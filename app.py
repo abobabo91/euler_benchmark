@@ -71,6 +71,7 @@ def build_leaderboard() -> list[dict]:
                 "model_id": mid,
                 "runs": 0, "correct": 0,
                 "total_steps": 0, "total_time": 0, "total_cost": 0,
+                "problems": [],
             }
         s = stats[mid]
         s["runs"] += 1
@@ -78,12 +79,16 @@ def build_leaderboard() -> list[dict]:
         s["total_steps"] += r.get("steps", 0)
         s["total_time"] += r.get("time_s", 0)
         s["total_cost"] += r.get("cost", 0)
+        s["problems"].append(r.get("problem"))
 
     rows = []
     for s in stats.values():
         n = s["runs"] or 1
+        problems = sorted(set(s["problems"]))
         rows.append({
             **s,
+            "problems": problems,
+            "problem_range": f"P{problems[0]}-P{problems[-1]}" if problems else "",
             "accuracy": round(s["correct"] / n * 100, 1),
             "avg_steps": round(s["total_steps"] / n, 1),
             "avg_time": round(s["total_time"] / n, 1),
