@@ -292,9 +292,11 @@ def _solve_anthropic(problem_text, model, api_key):
     tok_in = tok_out = 0
 
     for step in range(1, MAX_STEPS + 1):
-        r = _retry(client.messages.create,
-                    model=model, max_tokens=8192, temperature=0,
-                    system=SYSTEM_PROMPT, messages=messages, tools=tools)
+        create_kw = dict(model=model, max_tokens=8192,
+                         system=SYSTEM_PROMPT, messages=messages, tools=tools)
+        if "opus" not in model:
+            create_kw["temperature"] = 0
+        r = _retry(client.messages.create, **create_kw)
         if r.usage:
             tok_in += r.usage.input_tokens or 0
             tok_out += r.usage.output_tokens or 0
