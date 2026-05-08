@@ -74,13 +74,13 @@ python solver.py
 | Model | Problems Tested | Correct | Accuracy | Cost | Avg Time/Problem |
 |-------|:-:|:-:|:-:|:-:|:-:|
 | **claude-haiku-4.5** | 5 | 5 | **100.0%** | $0.15 | 39.7s |
-| **gemini-3.1-flash-lite** | 95 | 93 | **97.9%** | $0.24 | ~7s |
+| **gemini-3.1-flash-lite** | 116 | 111 | **95.7%** | $0.38 | ~10s |
 | **gpt-5.4-mini** | 5 | 4 | **80.0%** | $0.01 | 8.9s |
 | **grok-3-mini** | 5 | 3 | **60.0%** | $0.01 | 118.1s |
 
 ### Key findings
 
-**gemini-3.1-flash-lite** was tested on the full P1-95 range. At $0.24 total for 95 problems, it's extremely cost-effective. It failed only on P74 (digit factorial chains -- wrote buggy code) and P90 (cube digit pairs -- wrong algorithm). Its main weakness is over-verification: it often found the right answer early but kept rewriting code to "make sure," burning through its 15-step limit without submitting.
+**gemini-3.1-flash-lite** was tested on P1-141 (116 problems). At $0.38 total, it's extremely cost-effective. Accuracy degrades with difficulty: 100% on P1-50, 96% on P51-100, 76% on P101-141. Its main weakness is over-verification: it often found the right answer early but kept rewriting code to "make sure," burning through its 15-step limit without submitting. Adding a step counter to every tool response (`[Step 5/15]`) significantly reduced this behavior.
 
 **claude-haiku-4.5** solved all 5 hard problems perfectly, including P84 (Monopoly odds via Markov chains) which stumped both GPT and Grok. It writes careful, well-structured code and verifies with multiple approaches. Most expensive per problem but most reliable.
 

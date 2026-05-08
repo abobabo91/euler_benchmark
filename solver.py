@@ -175,13 +175,15 @@ MAX_STEPS = 15
 
 
 def _step_warning(step: int) -> str:
-    """Return a warning string when running low on steps."""
+    """Return step counter + urgency warnings."""
     remaining = MAX_STEPS - step
     if remaining <= 1:
-        return "\n\n[SYSTEM: This is your LAST step. You MUST call submit_answer NOW with your best answer.]"
+        return f"\n\n[Step {step}/{MAX_STEPS} — LAST STEP. You MUST call submit_answer NOW with your best answer.]"
     elif remaining <= 3:
-        return f"\n\n[SYSTEM: You have {remaining} steps remaining. Call submit_answer soon with your best answer.]"
-    return ""
+        return f"\n\n[Step {step}/{MAX_STEPS} — {remaining} steps left. Call submit_answer soon.]"
+    elif remaining <= 5:
+        return f"\n\n[Step {step}/{MAX_STEPS} — If your code already produces a consistent answer, call submit_answer.]"
+    return f"\n\n[Step {step}/{MAX_STEPS}]"
 
 # ── Provider-specific solve loops ───────────────────────────────────────────
 

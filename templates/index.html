@@ -343,8 +343,8 @@ function renderLanes(data, pn) {
         } else if (e.action==='run_python') {
           html += `<div class="log-step">Step ${e.step}: run_python</div>`;
           html += `<div class="log-out">${esc(e.output||'')}</div>`;
-        } else if (e.action==='final_answer') {
-          html += `<div class="log-step">Step ${e.step}: final_answer = ${esc(e.answer)} [${e.method}]</div>`;
+        } else if (e.action==='submit_answer') {
+          html += `<div class="log-step">Step ${e.step}: submit_answer = ${esc(e.answer||'')} [${e.method||''}]</div>`;
         } else {
           html += `<div class="log-step">Step ${e.step}: ${e.action}</div>`;
         }
