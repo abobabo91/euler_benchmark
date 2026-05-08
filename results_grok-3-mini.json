@@ -1,0 +1,158 @@
+[
+  {
+    "problem": 74,
+    "answer": "402",
+    "expected": "402",
+    "correct": true,
+    "steps": 4,
+    "time_s": 127.6,
+    "method": "code",
+    "cost": 0.00168,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "fact = [1] * 10  # 0! to 9!\nfor i in range(1, 10):\n    fact[i] = fact[i-1] * i\n\ndef next_num(n):\n    return sum(fact[int(d)] for d in str(n))\n\ncount = 0\nfor start in range(1, 1000000):  # 1 to 999999\n    path = []\n    current = start\n    while current not in path:\n        path.append(current)\n        current = next_num(current)\n    if len(path) == 60:\n        count += 1\nprint(count)",
+        "result": "Wrote 385 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "Error: solve.py does not exist"
+      },
+      {
+        "step": 3,
+        "action": "run_python",
+        "output": "Total possible cubes: 210\nNumber of distinct arrangements: 1217\n\nVerifying example: True\n\nFirst few valid pairs:\n1. (0, 1, 2, 3, 4, 5) and (0, 1, 2, 3, 6, 8)\n2. (0, 1, 2, 3, 4, 5) and (0, 1, 2, 3, 8, 9)\n3. (0, 1, 2, 3, 4, 5) and (0, 1, 2, 4, 6, 8)\n4. (0, 1, 2, 3, 4, 5) and (0, 1, 2, 4, 8, 9)\n5. (0, 1, 2, 3, 4, 5) and (0, 1, 2, 5, 6, 8)"
+      },
+      {
+        "step": 4,
+        "action": "submit_answer",
+        "answer": "402",
+        "method": "code"
+      }
+    ],
+    "model_id": "grok-3-mini"
+  },
+  {
+    "problem": 84,
+    "answer": "102415",
+    "expected": "101524",
+    "correct": false,
+    "steps": 2,
+    "time_s": 131.0,
+    "method": "direct",
+    "cost": 0.00202,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "import numpy as np\nimport scipy.linalg as LA\n\n# Constants\nBOARD_SIZE = 40\nG2J = 30  # Go to Jail square\nJAIL = 10  # Jail square\nCC_POS = [2, 17, 33]  # Community Chest squares\nCH_POS = [7, 22, 36]  # Chance squares\nRAILROADS = [5, 15, 25, 35]  # Railroad squares\nUTILITIES = [12, 28]  # Utility squares\n\nNUM_STATES = 120  # 40 positions * 3 double counts (0,1,2)\n\n# Helper functions\ndef next_R(pos):\n    sorted_rr = sorted(RAILROADS)\n    candidates = [r for r in sorted_rr if r > pos] + sorted_rr\n    return min(candidates)  # Smallest > pos, or the first\n\ndef next_U(pos):\n    sorted_ut = sorted(UTILITIES)\n    candidates = [u for u in sorted_ut if u > pos] + sorted_ut\n    return min(candidates)  # Smallest > pos, or the first\n\n# Build transition matrix P (120 x 120)\nP = np.zeros((NUM_STATES, NUM_STATES))\n\nfor i in range(NUM_STATES):  # For each state i\n    pos = i // 3  # Position (0-39)\n    doubles = i % 3  # Consecutive doubles (0,1,2)\n    \n    for die1 in range(1, 5):  # Two 4-sided dice\n        for die2 in range(1, 5):\n            sum_roll = die1 + die2\n            is_double = (die1 == die2)\n            new_doubles = doubles + 1 if is_double else 0\n            \n            if new_doubles == 3:  # Three doubles: go to Jail\n                final_pos = JAIL\n                next_doubles_final = 0\n                j = final_pos * 3 + next_doubles_final\n                P[i, j] += 1 / 16  # Probability of this roll\n            else:\n                tentative_pos = (pos + sum_roll) % BOARD_SIZE\n                if tentative_pos == G2J:  # G2J: go to Jail\n                    final_pos = JAIL\n                    next_doubles_final = 0\n                    j = final_pos * 3 + next_doubles_final\n                    P[i, j] += 1 / 16\n                elif tentative_pos in CC_POS:  # Community Chest\n                    j_go = 0 * 3 + new_doubles  # To GO\n                    j_jail = JAIL * 3 + 0  # To Jail\n                    j_stay = tentative_pos * 3 + new_doubles  # Stay\n                    P[i, j_go] += (1 / 16) * (1 / 16)  # To GO\n                    P[i, j_jail] += (1 / 16) * (1 / 16)  # To Jail\n                    P[i, j_stay] += (1 / 16) * (14 / 16)  # Stay\n                elif tentative_pos in CH_POS:  # Chance\n                    for card in range(16):  # 16 cards\n                        if card == 0:  # To GO\n                            final_pos_card = 0\n                            next_doubles_card = new_doubles\n                        elif card == 1:  # To JAIL\n                            final_pos_card = JAIL\n                            next_doubles_card = 0\n                        elif card == 2:  # To C1 (11)\n                            final_pos_card = 11\n                            next_doubles_card = new_doubles\n                        elif card == 3:  # To E3 (24)\n                            final_pos_card = 24\n                            next_doubles_card = new_doubles\n                        elif card == 4:  # To H2 (39)\n                            final_pos_card = 39\n                            next_doubles_card = new_doubles\n                        elif card == 5:  # To R1 (5)\n                            final_pos_card = 5\n                            next_doubles_card = new_doubles\n                        elif card == 6 or card == 7:  # To next R\n                            final_pos_card = next_R(tentative_pos)\n                            next_doubles_card = new_doubles\n                        elif card == 8:  # To next U\n                            final_pos_card = next_U(tentative_pos)\n                            next_doubles_card = new_doubles\n                        elif card == 9:  # Go back 3\n                            final_pos_card = (tentative_pos - 3) % BOARD_SIZE\n                            next_doubles_card = new_doubles\n                        else:  # Stay (cards 10-15)\n                            final_pos_card = tentative_pos\n                            next_doubles_card = new_doubles\n                        j = final_pos_card * 3 + next_doubles_card\n                        P[i, j] += (1 / 16) * (1 / 16)  # Roll prob * Card prob\n                else:  # No special square\n                    j = tentative_pos * 3 + new_doubles\n                    P[i, j] += 1 / 16\n\n# Compute stationary distribution\neigenvalues, eigenvectors = LA.eig(P.T, left=True)  # Left eigenvectors\nidx = np.argmin(np.abs(eigenvalues - 1))  # Eigenvalue closest to 1\nstationary = np.real(eigenvectors[:, idx])  # Real part\nstationary = stationary / np.sum(stationary)  # Normalize\n\n# Probability per square: sum over double counts\nprob_per_square = [sum(stationary[k*3 + d] for d in range(3)) for k in range(40)]\n\n# Get the three most popular squares (highest probabilities)\ntop_three = sorted(range(40), key=lambda k: prob_per_square[k], reverse=True)[:3]\n\n# Form the six-digit string\nmodal_string = f\"{top_three[0]:02d}{top_three[1]:02d}{top_three[2]:02d}\"\nprint(modal_string)  # Output the answer\n",
+        "result": "Wrote 4974 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "submit_answer",
+        "answer": "102415",
+        "method": "direct"
+      }
+    ],
+    "model_id": "grok-3-mini"
+  },
+  {
+    "problem": 90,
+    "answer": "1217",
+    "expected": "1217",
+    "correct": true,
+    "steps": 3,
+    "time_s": 63.2,
+    "method": "code",
+    "cost": 0.00151,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "import itertools\n\nsquares = [(0,1), (0,4), (0,9), (1,6), (2,5), (3,6), (4,9), (6,4), (8,1)]\n\ndef can_display(S, D):\n    if D not in [6,9]:\n        return D in S\n    else:\n        return 6 in S or 9 in S\n\ncombos = list(itertools.combinations(range(10), 6))\ncount = 0\nfor i in range(len(combos)):\n    for j in range(i, len(combos)):\n        S1 = set(combos[i])\n        S2 = set(combos[j])\n        all_good = True\n        for A, B in squares:\n            if not ((can_display(S1, A) and can_display(S2, B)) or (can_display(S1, B) and can_display(S2, A))):\n                all_good = False\n                break\n        if all_good:\n            count += 1\nprint(count)",
+        "result": "Wrote 664 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "1217"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "1217",
+        "method": "code"
+      }
+    ],
+    "model_id": "grok-3-mini"
+  },
+  {
+    "problem": 93,
+    "answer": "1258",
+    "expected": "1258",
+    "correct": true,
+    "steps": 3,
+    "time_s": 200.6,
+    "method": "code",
+    "cost": 0.00296,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "import itertools\nfrom fractions import Fraction\ndef get_possible_values(nums):\n    def helper(current_list):\n        if len(current_list) == 1:\n            val = current_list[0]\n            if val > 0 and val.denominator == 1:\n                return {int(val.numerator)}\n            return set()\n        results = set()\n        for i in range(len(current_list)):\n            for j in range(i+1, len(current_list)):\n                A = current_list[i]\n                B = current_list[j]\n                for op in ['+', '-', '*', '/']:\n                    if op == '+':\n                        val = A + B\n                        new_list_base = [x for k, x in enumerate(current_list) if k not in (i, j)]\n                        for pos in range(len(new_list_base) + 1):\n                            new_list = new_list_base[:pos] + [val] + new_list_base[pos:]\n                            sub_results = helper(new_list)\n                            results.update(sub_results)\n                    elif op == '-':\n                        val = A - B\n                        new_list_base = [x for k, x in enumerate(current_list) if k not in (i, j)]\n                        for pos in range(len(new_list_base) + 1):\n                            new_list = new_list_base[:pos] + [val] + new_list_base[pos:]\n                            sub_results = helper(new_list)\n                            results.update(sub_results)\n                        val2 = B - A\n                        for pos in range(len(new_list_base) + 1):\n                            new_list2 = new_list_base[:pos] + [val2] + new_list_base[pos:]\n                            sub_results2 = helper(new_list2)\n                            results.update(sub_results2)\n                    elif op == '*':\n                        val = A * B\n                        new_list_base = [x for k, x in enumerate(current_list) if k not in (i, j)]\n                        for pos in range(len(new_list_base) + 1):\n                            new_list = new_list_base[:pos] + [val] + new_list_base[pos:]\n                            sub_results = helper(new_list)\n                            results.update(sub_results)\n                    elif op == '/':\n                        if B != 0:\n                            val = A / B\n                            new_list_base = [x for k, x in enumerate(current_list) if k not in (i, j)]\n                            for pos in range(len(new_list_base) + 1):\n                                new_list = new_list_base[:pos] + [val] + new_list_base[pos:]\n                                sub_results = helper(new_list)\n                                results.update(sub_results)\n                        if A != 0:\n                            val2 = B / A\n                            new_list_base = [x for k, x in enumerate(current_list) if k not in (i, j)]\n                            for pos in range(len(new_list_base) + 1):\n                                new_list2 = new_list_base[:pos] + [val2] + new_list_base[pos:]\n                                sub_results2 = helper(new_list2)\n                                results.update(sub_results2)\n        return results\n    nums_frac = [Fraction(x) for x in nums]\n    possible_values = set()\n    for perm in itertools.permutations(nums_frac):\n        possible_values.update(helper(list(perm)))\n    return possible_values\ndigits = range(1, 10)\nmax_n = 0\nbest_comb = None\nfor comb in itertools.combinations(digits, 4):\n    values = get_possible_values(comb)\n    n = 0\n    while n + 1 in values:\n        n += 1\n    if n > max_n:\n        max_n = n\n        best_comb = comb\n    elif n == max_n:\n        current_str = ''.join(str(x) for x in sorted(comb))\n        best_str = ''.join(str(x) for x in sorted(best_comb))\n        if current_str < best_str:\n            best_comb = comb\nprint(''.join(str(x) for x in sorted(best_comb)))",
+        "result": "Wrote 3866 chars to solve.py"
+      },
+      {
+        "step": 1,
+        "action": "run_python",
+        "output": "Error: script timed out (30s limit). Optimize your algorithm."
+      },
+      {
+        "step": 2,
+        "action": "write_file",
+        "code": "import itertools\nfrom fractions import Fraction\ndef operate(x, op, y):\n    if op == '+':\n        return x + y\n    elif op == '-':\n        return x - y\n    elif op == '*':\n        return x * y\n    elif op == '/':\n        if y == 0:\n            raise ZeroDivisionError\n        return x / y\ndef get_possible_integers(nums):\n    possible = set()\n    perms = list(itertools.permutations(nums))\n    def eval1(a, b, c, d, op1, op2, op3):\n        try:\n            A, B, C, D = map(Fraction, [a, b, c, d])\n            temp1 = operate(A, op1, B)\n            temp2 = operate(temp1, op2, C)\n            result = operate(temp2, op3, D)\n            if result > 0 and result.denominator == 1:\n                return int(result.numerator)\n        except:\n            pass\n        return None\n    def eval2(a, b, c, d, op1, op2, op3):\n        try:\n            A, B, C, D = map(Fraction, [a, b, c, d])\n            temp1 = operate(B, op2, C)\n            temp2 = operate(A, op1, temp1)\n            result = operate(temp2, op3, D)\n            if result > 0 and result.denominator == 1:\n                return int(result.numerator)\n        except:\n            pass\n        return None\n    def eval3(a, b, c, d, op1, op2, op3):\n        try:\n            A, B, C, D = map(Fraction, [a, b, c, d])\n            temp1 = operate(B, op2, C)\n            temp2 = operate(temp1, op3, D)\n            result = operate(A, op1, temp2)\n            if result > 0 and result.denominator == 1:\n                return int(result.numerator)\n        except:\n            pass\n        return None\n    def eval4(a, b, c, d, op1, op2, op3):\n        try:\n            A, B, C, D = map(Fraction, [a, b, c, d])\n            temp1 = operate(C, op3, D)\n            temp2 = operate(B, op2, temp1)\n            result = operate(A, op1, temp2)\n            if result > 0 and result.denominator == 1:\n                return int(result.numerator)\n        except:\n            pass\n        return None\n    def eval5(a, b, c, d, op1, op2, op3):\n        try:\n            A, B, C, D = map(Fraction, [a, b, c, d])\n            temp1 = operate(A, op1, B)\n            temp2 = operate(C, op3, D)\n            result = operate(temp1, op2, temp2)\n            if result > 0 and result.denominator == 1:\n                return int(result.numerator)\n        except:\n            pass\n        return None\n    evaluators = [eval1, eval2, eval3, eval4, eval5]\n    for perm in perms:\n        a, b, c, d = perm\n        for ops in itertools.product(['+', '-', '*', '/'], repeat=3):\n            for evaluator in evaluators:\n                result = evaluator(a, b, c, d, ops[0], ops[1], ops[2])\n                if result is not None:\n                    possible.add(result)\n    return possible\ndigits = range(1, 10)\nmax_n = 0\nbest_comb = None\nfor comb in itertools.combinations(digits, 4):\n    values = get_possible_integers(comb)\n    n = 0\n    while n + 1 in values:\n        n += 1\n    if n > max_n:\n        max_n = n\n        best_comb = comb\n    elif n == max_n:\n        current_str = ''.join(str(x) for x in sorted(comb))\n        best_str = ''.join(str(x) for x in sorted(best_comb))\n        if current_str < best_str:\n            best_comb = comb\nprint(''.join(str(x) for x in sorted(best_comb)))",
+        "result": "Wrote 3214 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "1258"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "1258",
+        "method": "code"
+      }
+    ],
+    "model_id": "grok-3-mini"
+  },
+  {
+    "problem": 95,
+    "answer": "14264",
+    "expected": "14316",
+    "correct": false,
+    "steps": 2,
+    "time_s": 68.0,
+    "method": "direct",
+    "cost": 0.00094,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "MAX_N = 1000000\n\ntotal_sum_div = [0] * (MAX_N + 1)\nfor i in range(1, MAX_N + 1):\n    for j in range(i, MAX_N + 1, i):\n        total_sum_div[j] += i\n\nproper_sum_div = [0] * (MAX_N + 1)\nfor i in range(1, MAX_N + 1):\n    proper_sum_div[i] = total_sum_div[i] - i\n\nsucc = [0] * (MAX_N + 1)\nfor i in range(1, MAX_N + 1):\n    next_val = proper_sum_div[i]\n    if 1 <= next_val <= MAX_N:\n        succ[i] = next_val\n\nvisited = [False] * (MAX_N + 1)\nmax_length = 0\nsmallest_in_longest = float('inf')\n\nfor start in range(1, MAX_N + 1):\n    if not visited[start]:\n        path = []\n        current = start\n        while 1 <= current <= MAX_N and not visited[current]:\n            visited[current] = True\n            path.append(current)\n            current = succ[current]\n        if 1 <= current <= MAX_N and current in path:\n            index = path.index(current)\n            cycle = path[index:]\n            cycle_length = len(cycle)\n            if cycle_length > max_length:\n                max_length = cycle_length\n                smallest_in_longest = min(cycle)\n            elif cycle_length == max_length:\n                smallest_in_longest = min(smallest_in_longest, min(cycle))\n\nprint(smallest_in_longest)",
+        "result": "Wrote 1205 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "submit_answer",
+        "answer": "14264",
+        "method": "direct"
+      }
+    ],
+    "model_id": "grok-3-mini"
+  }
+]

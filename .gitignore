@@ -2,5 +2,4 @@ __pycache__/
 *.pyc
 .env
 _workspace/
-results_*.csv
 data/config.json

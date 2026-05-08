@@ -1,0 +1,152 @@
+[
+  {
+    "problem": 74,
+    "answer": "402",
+    "expected": "402",
+    "correct": true,
+    "steps": 3,
+    "time_s": 13.2,
+    "method": "code",
+    "cost": 0.00198,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "from math import factorial\n\nFACT = [factorial(i) for i in range(10)]\n\n# For n < 1_000_000, the next value is at most 6 * 9! = 2177280.\nLIMIT = 6 * FACT[9]\n\nmemo = {1: 1, 2: 1, 145: 1, 169: 3, 871: 2, 872: 2, 363601: 3, 45361: 2, 45362: 2}\n\n\ndef next_num(n: int) -> int:\n    s = 0\n    while n:\n        n, d = divmod(n, 10)\n        s += FACT[d]\n    return s\n\n\ndef chain_len(start: int) -> int:\n    seen = []\n    n = start\n    while n not in memo and n not in seen:\n        seen.append(n)\n        n = next_num(n)\n    if n in memo:\n        length = memo[n]\n    else:\n        # Found a new cycle within seen\n        idx = seen.index(n)\n        cycle_len = len(seen) - idx\n        for x in seen[idx:]:\n            memo[x] = cycle_len\n        length = cycle_len\n        seen = seen[:idx]\n    for x in reversed(seen):\n        length += 1\n        memo[x] = length\n    return memo[start]\n\n\ncount = 0\nfor i in range(1, 1_000_000):\n    if chain_len(i) == 60:\n        count += 1\n\nprint(count)\n",
+        "result": "Wrote 980 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "Testing examples:\n145: 1\n69: 5\n78: 4\n540: 2\nProcessed 100000...\nProcessed 200000...\nProcessed 300000...\nProcessed 400000...\nProcessed 500000...\nProcessed 600000...\nProcessed 700000...\nProcessed 800000...\nProcessed 900000...\n\nAnswer: 402"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "402",
+        "method": "code"
+      }
+    ],
+    "model_id": "gpt-5.4-mini"
+  },
+  {
+    "problem": 84,
+    "answer": "103315",
+    "expected": "101524",
+    "correct": false,
+    "steps": 3,
+    "time_s": 10.0,
+    "method": "code",
+    "cost": 0.00431,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "import numpy as np\n\nN = 40\nJAIL = 10\nG2J = 30\nCC = {2, 17, 33}\nCH = {7, 22, 36}\n\n# Dice distribution for two 4-sided dice\nfrom collections import Counter\nrolls = Counter()\nfor a in range(1, 5):\n    for b in range(1, 5):\n        rolls[a+b] += 1\nroll_probs = {s: c / 16.0 for s, c in rolls.items()}\n\ncc_moves = {0: 1/16, JAIL: 1/16}  # GO, JAIL\nch_moves = {\n    0: 1/16, JAIL: 1/16, 11: 1/16, 24: 1/16, 39: 1/16, 5: 1/16,\n}\n# next R twice\n# next U\n# back 3\n\ndef next_r(pos):\n    for r in (5, 15, 25, 35):\n        if r > pos:\n            return r\n    return 5\n\ndef next_u(pos):\n    return 12 if pos < 12 or pos >= 28 else 28\n\n# Build transition matrix P[i][j] = prob end at j after one turn starting from i\nP = np.zeros((N, N), dtype=float)\n\nfor start in range(N):\n    # state includes doubles count and jail? For this problem, if in jail and roll doubles? Actually ignore get-out-of-jail rule,\n    # assume pay next turn, so no special jail mechanics beyond landing there. Thus no need to track doubles across turns.\n    for s, p_roll in roll_probs.items():\n        pos = (start + s) % N\n        # resolve G2J\n        if pos == G2J:\n            P[start, JAIL] += p_roll\n            continue\n        # resolve CC/CH with movement cards only; non-movement cards leave you there.\n        if pos in CC:\n            # 14/16 stay\n            P[start, pos] += p_roll * 14/16\n            # GO, JAIL\n            P[start, 0] += p_roll * (1/16)\n            P[start, JAIL] += p_roll * (1/16)\n            continue\n        if pos in CH:\n            # 6 cards that move to fixed squares\n            fixed = [0, JAIL, 11, 24, 39, 5]\n            for q in fixed:\n                P[start, q] += p_roll * (1/16)\n            # next R twice\n            P[start, next_r(pos)] += p_roll * (2/16)\n            # next U\n            P[start, next_u(pos)] += p_roll * (1/16)\n            # back 3, then resolve if lands on CC/G2J\n            back = (pos - 3) % N\n            if back == G2J:\n                P[start, JAIL] += p_roll * (1/16)\n            elif back in CC:\n                P[start, back] += p_roll * (14/16)  # stay on CC\n                P[start, 0] += p_roll * (1/16)\n                P[start, JAIL] += p_roll * (1/16)\n            elif back in CH:\n                # back 3 from CH can land on CH? not possible for standard board, but handle recursively if needed\n                fixed2 = [0, JAIL, 11, 24, 39, 5]\n                for q in fixed2:\n                    P[start, q] += p_roll * (1/16) * (1/16)\n                P[start, next_r(back)] += p_roll * (1/16) * (2/16)\n                P[start, next_u(back)] += p_roll * (1/16) * (1/16)\n                bb = (back - 3) % N\n                if bb == G2J:\n                    P[start, JAIL] += p_roll * (1/16) * (1/16)\n                else:\n                    P[start, bb] += p_roll * (1/16) * (1/16)\n            else:\n                P[start, back] += p_roll * (1/16)\n            continue\n        P[start, pos] += p_roll\n\n# Power iteration for stationary distribution\nv = np.ones(N) / N\nfor _ in range(10000):\n    nv = v @ P\n    if np.max(np.abs(nv - v)) < 1e-15:\n        v = nv\n        break\n    v = nv\n\norder = sorted(range(N), key=lambda i: (-v[i], i))\nprint(''.join(f'{i:02d}' for i in order[:3]))\n",
+        "result": "Wrote 3235 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "103315"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "103315",
+        "method": "code"
+      }
+    ],
+    "model_id": "gpt-5.4-mini"
+  },
+  {
+    "problem": 90,
+    "answer": "1217",
+    "expected": "1217",
+    "correct": true,
+    "steps": 3,
+    "time_s": 5.7,
+    "method": "code",
+    "cost": 0.00208,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "from itertools import combinations\n\n# Represent each cube as a bitmask over digits 0..9.\n# Digits 6 and 9 are interchangeable, so for checking we treat presence of either as satisfying both.\n\nsquares = [(0,1),(0,4),(0,9),(1,6),(2,5),(3,6),(4,9),(6,4),(8,1)]\n\n# Precompute all 6-digit subsets as masks.\nsubsets = []\nfor comb in combinations(range(10), 6):\n    mask = 0\n    for d in comb:\n        mask |= 1 << d\n    subsets.append(mask)\n\n\ndef has(mask, d):\n    if d == 6 or d == 9:\n        return (mask >> 6) & 1 or (mask >> 9) & 1\n    return (mask >> d) & 1\n\ncount = 0\nfor i, a in enumerate(subsets):\n    for b in subsets[i:]:\n        ok = True\n        for x, y in squares:\n            if not ((has(a, x) and has(b, y)) or (has(a, y) and has(b, x))):\n                ok = False\n                break\n        if ok:\n            count += 1\n\nprint(count)\n",
+        "result": "Wrote 851 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "1217"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "1217",
+        "method": "code"
+      }
+    ],
+    "model_id": "gpt-5.4-mini"
+  },
+  {
+    "problem": 93,
+    "answer": "1258",
+    "expected": "1258",
+    "correct": true,
+    "steps": 3,
+    "time_s": 7.9,
+    "method": "code",
+    "cost": 0.00286,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "from fractions import Fraction\nfrom itertools import combinations\n\nops = [\n    lambda x, y: x + y,\n    lambda x, y: x - y,\n    lambda x, y: y - x,\n    lambda x, y: x * y,\n    lambda x, y: x / y if y != 0 else None,\n    lambda x, y: y / x if x != 0 else None,\n]\n\ndef results(nums):\n    if len(nums) == 1:\n        return {nums[0]}\n    out = set()\n    n = len(nums)\n    # split into two non-empty groups\n    for mask in range(1, 1 << n - 1):\n        pass\n    # recursive pairwise reduction is simpler\n    if len(nums) == 2:\n        a, b = nums\n        for op in ops:\n            try:\n                r = op(a, b)\n            except ZeroDivisionError:\n                continue\n            if r is not None:\n                out.add(r)\n        return out\n    # choose ordered pair and reduce\n    L = list(nums)\n    for i in range(len(L)):\n        for j in range(i + 1, len(L)):\n            a, b = L[i], L[j]\n            rest = [L[k] for k in range(len(L)) if k != i and k != j]\n            for op in ops:\n                try:\n                    r = op(a, b)\n                except ZeroDivisionError:\n                    continue\n                if r is None:\n                    continue\n                out |= results(rest + [r])\n    return out\n\n# Better memoized recursive generation using tuples of Fractions\nfrom functools import lru_cache\n\n@lru_cache(None)\ndef gen(state):\n    state = tuple(sorted(state))\n    if len(state) == 1:\n        return {state[0]}\n    out = set()\n    n = len(state)\n    for i in range(n):\n        for j in range(i + 1, n):\n            a, b = state[i], state[j]\n            rest = list(state[:i] + state[i+1:j] + state[j+1:])\n            candidates = [a + b, a - b, b - a, a * b]\n            if b != 0:\n                candidates.append(a / b)\n            if a != 0:\n                candidates.append(b / a)\n            for r in candidates:\n                out |= gen(tuple(rest + [r]))\n    return out\n\nbest = None\nbest_n = -1\nfor digits in combinations(range(1, 10), 4):\n    vals = gen(tuple(Fraction(d) for d in digits))\n    ints = {int(v) for v in vals if v.denominator == 1 and v > 0}\n    n = 1\n    while n in ints:\n        n += 1\n    if n - 1 > best_n:\n        best_n = n - 1\n        best = digits\n        print('new best', digits, best_n)\n\nprint('answer', ''.join(map(str, best)))\n",
+        "result": "Wrote 2311 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "new best (1, 2, 3, 4) 28\nnew best (1, 2, 3, 8) 35\nnew best (1, 2, 4, 7) 37\nnew best (1, 2, 4, 9) 40\nnew best (1, 2, 5, 6) 43\nnew best (1, 2, 5, 8) 51\nanswer 1258"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "1258",
+        "method": "code"
+      }
+    ],
+    "model_id": "gpt-5.4-mini"
+  },
+  {
+    "problem": 95,
+    "answer": "14316",
+    "expected": "14316",
+    "correct": true,
+    "steps": 3,
+    "time_s": 7.8,
+    "method": "code",
+    "cost": 0.00177,
+    "log": [
+      {
+        "step": 1,
+        "action": "write_file",
+        "code": "from math import isqrt\n\nLIMIT = 1_000_000\n\n# Sum of proper divisors for every n <= LIMIT using a sieve.\nsp = [0] * (LIMIT + 1)\nfor d in range(1, LIMIT // 2 + 1):\n    for m in range(d * 2, LIMIT + 1, d):\n        sp[m] += d\n\nvisited_global = [False] * (LIMIT + 1)\nbest_len = 0\nbest_min = None\n\nfor start in range(2, LIMIT + 1):\n    if visited_global[start]:\n        continue\n\n    seq = []\n    pos = {}\n    x = start\n    while True:\n        if x > LIMIT or x == 0:\n            break\n        if x in pos:\n            cycle = seq[pos[x]:]\n            # Ensure all elements in the cycle are within limit (they are by loop condition)\n            clen = len(cycle)\n            cmin = min(cycle)\n            if clen > best_len or (clen == best_len and (best_min is None or cmin < best_min)):\n                best_len = clen\n                best_min = cmin\n            break\n        if visited_global[x]:\n            break\n        pos[x] = len(seq)\n        seq.append(x)\n        x = sp[x]\n\n    for v in seq:\n        visited_global[v] = True\n\nprint(best_min)\n",
+        "result": "Wrote 1048 chars to solve.py"
+      },
+      {
+        "step": 2,
+        "action": "run_python",
+        "output": "14316"
+      },
+      {
+        "step": 3,
+        "action": "submit_answer",
+        "answer": "14316",
+        "method": "code"
+      }
+    ],
+    "model_id": "gpt-5.4-mini"
+  }
+]

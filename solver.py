@@ -168,9 +168,20 @@ RULES:
 - The answer is always a single integer or number.
 - All Python stdlib is available (math, itertools, functools, collections, etc.).
 - Think about the math first, then write efficient code.
+- You have a LIMITED number of steps. Once your code produces a consistent answer, call submit_answer immediately. Do not over-verify.
 """
 
 MAX_STEPS = 15
+
+
+def _step_warning(step: int) -> str:
+    """Return a warning string when running low on steps."""
+    remaining = MAX_STEPS - step
+    if remaining <= 1:
+        return "\n\n[SYSTEM: This is your LAST step. You MUST call submit_answer NOW with your best answer.]"
+    elif remaining <= 3:
+        return f"\n\n[SYSTEM: You have {remaining} steps remaining. Call submit_answer soon with your best answer.]"
+    return ""
 
 # ── Provider-specific solve loops ───────────────────────────────────────────
 
@@ -236,7 +247,7 @@ def _solve_openai(problem_text, model, api_key, base_url=None):
             # No tool call — treat text as thinking, ask to use tools
             log.append({"step": step, "action": "text", "content": (msg.content or "")[:300]})
             messages.append({"role": "assistant", "content": msg.content or ""})
-            messages.append({"role": "user", "content": "Use the tools to write code and solve the problem. Call submit_answer when done."})
+            messages.append({"role": "user", "content": "Use the tools to write code and solve the problem. Call submit_answer when done." + _step_warning(step)})
             print(f"  {DIM}Step {step}: text (no tool call){RESET}")
             continue
 
@@ -256,7 +267,7 @@ def _solve_openai(problem_text, model, api_key, base_url=None):
                 return ans, step, log, tok_in, tok_out
 
             _log_tool(step, name, args, result, log)
-            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result + _step_warning(step)})
 
     return "FAILED", MAX_STEPS, log, tok_in, tok_out
 
@@ -286,7 +297,7 @@ def _solve_anthropic(problem_text, model, api_key):
             text = next((b.text for b in r.content if b.type == "text"), "")
             log.append({"step": step, "action": "text", "content": text[:300]})
             messages.append({"role": "assistant", "content": r.content})
-            messages.append({"role": "user", "content": "Use the tools to write code and solve the problem. Call submit_answer when done."})
+            messages.append({"role": "user", "content": "Use the tools to write code and solve the problem. Call submit_answer when done." + _step_warning(step)})
             print(f"  {DIM}Step {step}: text (no tool call){RESET}")
             continue
 
@@ -309,7 +320,7 @@ def _solve_anthropic(problem_text, model, api_key):
                 return ans, step, log, tok_in, tok_out
 
             _log_tool(step, name, args, result, log)
-            tool_results.append({"type": "tool_result", "tool_use_id": block.id, "content": result})
+            tool_results.append({"type": "tool_result", "tool_use_id": block.id, "content": result + _step_warning(step)})
 
         messages.append({"role": "user", "content": tool_results})
 
@@ -370,7 +381,7 @@ def _solve_gemini(problem_text, model, api_key):
                 text = ""
             log.append({"step": step, "action": "text", "content": text[:300]})
             response = _retry(chat.send_message,
-                              "Use the tools to write code and solve the problem. Call submit_answer when done.")
+                              "Use the tools to write code and solve the problem. Call submit_answer when done." + _step_warning(step))
             print(f"  {DIM}Step {step}: text (no tool call){RESET}")
             continue
 
@@ -390,7 +401,7 @@ def _solve_gemini(problem_text, model, api_key):
                 return ans, step, log, tok_in, tok_out
 
             _log_tool(step, name, args, result, log)
-            response_parts.append(gt.Part.from_function_response(name=name, response={"result": result}))
+            response_parts.append(gt.Part.from_function_response(name=name, response={"result": result + _step_warning(step)}))
 
         response = _retry(chat.send_message, response_parts)
 
@@ -443,6 +454,7 @@ def main():
     parser = argparse.ArgumentParser(description="Agentic Project Euler Solver")
     parser.add_argument("--model", choices=list(MODEL_REGISTRY.keys()))
     parser.add_argument("--problem", type=int)
+    parser.add_argument("--problems", type=str, help="Comma-separated problem numbers, e.g. 51,55,60")
     parser.add_argument("--start", type=int, help="Start from this problem number")
     parser.add_argument("--limit", type=int)
     args = parser.parse_args()
@@ -469,7 +481,9 @@ def main():
 
     solutions = load_solutions()
 
-    if args.problem:
+    if args.problems:
+        problem_nums = [int(x.strip()) for x in args.problems.split(",")]
+    elif args.problem:
         problem_nums = [args.problem]
     else:
         problem_nums = sorted(solutions.keys())
@@ -478,6 +492,8 @@ def main():
         if args.limit:
             problem_nums = problem_nums[:args.limit]
 
+    import shutil
+    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "results.json")
     results = []
     total_tok_in = total_tok_out = 0
 
@@ -492,7 +508,6 @@ def main():
               (f"  {DIM}(expected: {expected}){RESET}" if expected else ""))
 
         # Clean workspace between problems
-        import shutil
         for f in os.listdir(WORKSPACE):
             p = os.path.join(WORKSPACE, f)
             if os.path.isdir(p):
@@ -514,11 +529,26 @@ def main():
         print(f"  {mark}  answer={answer}  steps={steps}  method={method}  time={elapsed:.1f}s")
         rates = COST_PER_1M.get(api_model, (0, 0))
         prob_cost = (tok_in * rates[0] + tok_out * rates[1]) / 1_000_000
-        results.append({
+        result = {
             "problem": pn, "answer": answer, "expected": expected or "",
             "correct": correct, "steps": steps, "time_s": round(elapsed, 1),
             "method": method, "cost": round(prob_cost, 5), "log": log,
-        })
+            "model_id": model_key,
+        }
+        results.append(result)
+
+        # Save incrementally after each problem
+        try:
+            with open(data_path) as f:
+                existing = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            existing = []
+        # Remove any previous result for this model+problem combo
+        existing = [r for r in existing
+                    if not (r.get("model_id") == model_key and r.get("problem") == pn)]
+        existing.append(result)
+        with open(data_path, "w") as f:
+            json.dump(existing, f, indent=2)
 
     if results:
         tested = [r for r in results if r["correct"] is not None]
@@ -533,23 +563,11 @@ def main():
         print(f"  Tokens: {total_tok_in:,} in / {total_tok_out:,} out  (~${cost:.4f})")
         print(f"{'=' * 50}\n")
 
-        # Save JSON with full logs
+        # Save per-model JSON with full logs
         json_path = f"results_{model_key.replace('.', '_')}.json"
         with open(json_path, "w") as f:
-            json.dump([{**r, "model_id": model_key} for r in results], f, indent=2)
+            json.dump(results, f, indent=2)
         print(f"  Saved to {json_path}")
-
-        # Also append to data/results.json for the web UI
-        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "results.json")
-        try:
-            with open(data_path) as f:
-                existing = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            existing = []
-        existing.extend([{**r, "model_id": model_key} for r in results])
-        with open(data_path, "w") as f:
-            json.dump(existing, f, indent=2)
-        print(f"  Appended to data/results.json ({len(existing)} total)")
 
 
 if __name__ == "__main__":
