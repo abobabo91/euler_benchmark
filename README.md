@@ -1,5 +1,7 @@
 # Euler Benchmark
 
+**Live:** https://euler-benchmark-673626542594.europe-west1.run.app (Cloud Run, project `zeta-matrix-483109-u9`, region `europe-west1`, service `euler-benchmark`)
+
 An agentic LLM benchmark on Project Euler problems. Each model gets a sandboxed workspace where it can write Python code, execute it, debug errors, and iterate until it submits an answer. The model **never sees the correct answer** -- comparison happens post-hoc.
 
 ## How it works
